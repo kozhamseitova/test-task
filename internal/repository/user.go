@@ -23,7 +23,7 @@ func (m *Manager) CreateUser(ctx context.Context, u *entity.CreateUserRequest) (
 	err := pgxscan.Get(ctx, m.pool, &id, query, u.Username, u.Password, u.FirstName, u.LastName, u.City, u.BirthDate)
 
 	if err != nil {
-		m.logger.Errorf("[CreateUser] err: %v", err)
+		m.logger.Errorf(ctx, "[CreateUser] err: %v", err)
 		return 0, utils.ErrInternalError
 	}
 
@@ -41,7 +41,7 @@ func (m *Manager) GetUserByUsername(ctx context.Context, username string) (*enti
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, utils.ErrNotFound
 		}
-		m.logger.Errorf("[GetUserByUsername] err: %v", err)
+		m.logger.Errorf(ctx, "[GetUserByUsername] err: %v", err)
 		return nil, utils.ErrInternalError
 	}
 
@@ -61,7 +61,7 @@ func (m *Manager) UpdateUser(ctx context.Context, u *entity.CreateUserRequest) e
 	_, err := m.pool.Exec(ctx, query, u.Username, u.Password, u.FirstName, u.LastName, u.City, u.BirthDate, u.Id)
 
 	if err != nil {
-		m.logger.Errorf("[UpdateUser] err: %v", err)
+		m.logger.Errorf(ctx, "[UpdateUser] err: %v", err)
 		return utils.ErrInternalError
 	}
 
@@ -74,7 +74,7 @@ func (m *Manager) DeleteUser(ctx context.Context, id int) error {
 	_, err := m.pool.Exec(ctx, query, id)
 
 	if err != nil {
-		m.logger.Errorf("[DeleteUser] err: %v", err)
+		m.logger.Errorf(ctx, "[DeleteUser] err: %v", err)
 		return utils.ErrInternalError
 	}
 
@@ -103,21 +103,23 @@ func (m *Manager) GetAllUsers(ctx context.Context, filter entity.UserFilter) ([]
 		})
 	}
 
-	offset := filter.Amount * (filter.Page - 1)
-
-	builder = builder.Offset(uint64(offset)).Limit(uint64(filter.Amount))
+	if (filter.Page > 0 && filter.Amount > 0) {
+		offset := filter.Amount * (filter.Page - 1)
+		builder = builder.Offset(uint64(offset)).Limit(uint64(filter.Amount))
+	}
+	
 
 	var filteredUsers []*entity.User
 	sql, args, err := builder.ToSql()
 	if err != nil {
-		m.logger.Errorf("[GetAllUsers] err: %v", err)
+		m.logger.Errorf(ctx, "[GetAllUsers] err: %v", err)
 		return nil, utils.ErrInternalError
 	}
-	m.logger.Infof("sql: %s", sql)
+	m.logger.Infof(ctx, "sql: %s", sql)
 
 	err = pgxscan.Select(ctx, m.pool, &filteredUsers, sql, args...)
 	if err != nil {
-		m.logger.Errorf("[GetAllUsers] err: %v", err)
+		m.logger.Errorf(ctx, "[GetAllUsers] err: %v", err)
 		return nil, utils.ErrInternalError
 	}
 
@@ -135,7 +137,7 @@ func (m *Manager) GetUsersById(ctx context.Context, id int) (*entity.User, error
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, utils.ErrNotFound
 		}
-		m.logger.Errorf("[GetUserById] err: %v", err)
+		m.logger.Errorf(ctx, "[GetUserById] err: %v", err)
 		return nil, utils.ErrInternalError
 	}
 

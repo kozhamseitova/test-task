@@ -1,16 +1,19 @@
 package logger
 
 import (
+	"context"
+
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	// "go.uber.org/zap/zapcore"
 )
 
 type Logger interface {
-	Errorf(format string, args ...interface{})
-	Fatalf(format string, args ...interface{})
-	Infof(format string, args ...interface{})
-	Warnf(format string, args ...interface{})
-	Debugf(format string, args ...interface{})
+	Errorf(c context.Context, format string, args ...interface{})
+	Fatalf(c context.Context, format string, args ...interface{})
+	Infof(c context.Context, format string, args ...interface{})
+	Warnf(c context.Context, format string, args ...interface{})
+	Debugf(c context.Context, format string, args ...interface{})
 }
 
 type logger struct {
@@ -20,6 +23,7 @@ type logger struct {
 func NewLogger(production bool) (Logger, error) {
 	config := zap.NewProductionConfig()
 	config.DisableStacktrace = true
+	config.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	// config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	l, err := config.Build(zap.AddCallerSkip(1))
 	if err != nil {
@@ -30,27 +34,24 @@ func NewLogger(production bool) (Logger, error) {
 	}, nil
 }
 
-func (l *logger) Errorf(format string, args ...interface{}) {
-	l.zapLogger.Errorf(format, args)
+func (l *logger) Errorf(c context.Context, format string, args ...interface{}) {
+	l.zapLogger.With("traceID", c.Value("traceID")).Errorf(format, args)
 }
-func (l *logger) Fatalf(format string, args ...interface{}) {
-	l.zapLogger.Fatalf(format, args)
+func (l *logger) Fatalf(c context.Context, format string, args ...interface{}) {
+	l.zapLogger.With("traceID", c.Value("traceID")).Fatalf(format, args)
 }
-func (l *logger) Fatal(args ...interface{}) {
-	l.zapLogger.Fatal(args)
+func (l *logger) Fatal(c context.Context, args ...interface{}) {
+	l.zapLogger.With("traceID", c.Value("traceID")).Fatal(args)
 }
-func (l *logger) Infof(format string, args ...interface{}) {
-	l.zapLogger.Infof(format, args)
+func (l *logger) Infof(c context.Context, format string, args ...interface{}) {
+	l.zapLogger.With("traceID", c.Value("traceID")).With("traceID", c.Value("traceID")).Infof(format, args)
 }
-func (l *logger) Warnf(format string, args ...interface{}) {
-	l.zapLogger.Warnf(format, args)
+func (l *logger) Warnf(c context.Context, format string, args ...interface{}) {
+	l.zapLogger.With("traceID", c.Value("traceID")).Warnf(format, args)
 }
-func (l *logger) Debugf(format string, args ...interface{}) {
-	l.zapLogger.Debugf(format, args)
+func (l *logger) Debugf(c context.Context, format string, args ...interface{}) {
+	l.zapLogger.With("traceID", c.Value("traceID")).Debugf(format, args)
 }
-func (l *logger) Printf(format string, args ...interface{}) {
-	l.zapLogger.Infof(format, args)
-}
-func (l *logger) Println(args ...interface{}) {
-	l.zapLogger.Info(args, "\n")
+func (l *logger) Printf(c context.Context, format string, args ...interface{}) {
+	l.zapLogger.With("traceID", c.Value("traceID")).Infof(format, args)
 }

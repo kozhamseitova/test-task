@@ -84,7 +84,6 @@ func (h *Handler) login(c *fiber.Ctx) error {
 func (h *Handler) getUsers(c *fiber.Ctx) error {
 	var filter entity.UserFilter
 	c.QueryParser(&filter)
-	h.logger.Infof("query: %v", filter)
 	users, err := h.service.GetAllUsers(c.Context(), filter)
 	if err != nil {
 		c.Status(http.StatusInternalServerError).JSON(&api.Error{

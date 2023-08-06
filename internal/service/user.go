@@ -12,7 +12,7 @@ func(m *Manager) CreateUser(ctx context.Context, u *entity.CreateUserRequest) (i
 	user, err := m.repository.GetUserByUsername(ctx, u.Username)
 	if err != nil {
 		if !errors.Is(err, utils.ErrNotFound) {
-			m.logger.Errorf("[GetUserByUsername] err: %v", err)
+			m.logger.Errorf(ctx, "[GetUserByUsername] err: %v", err)
 			return 0, utils.ErrInternalError
 		}
 	}
@@ -23,7 +23,7 @@ func(m *Manager) CreateUser(ctx context.Context, u *entity.CreateUserRequest) (i
 
 	hashedPassword, err := utils.HashPassword(u.Password)
 	if err != nil {
-		m.logger.Errorf("[HashPassword] err: %v", err)
+		m.logger.Errorf(ctx, "[HashPassword] err: %v", err)
 		return 0, utils.ErrInternalError
 	}
 
@@ -47,14 +47,14 @@ func(m *Manager) Login(ctx context.Context, username, password string) (string, 
 	err = utils.CheckPassword(password, user.Password)
 
 	if err != nil {
-		m.logger.Errorf("[ChechPassword] err: %v", err)
+		m.logger.Errorf(ctx, "[ChechPassword] err: %v", err)
 		return "", utils.ErrInternalError
 	}
 
 	token, err := m.jwttoken.CreateToken(user.Id, m.config.Token.TimeToLive)
 
 	if err != nil {
-		m.logger.Errorf("[CreateToken] err: %v", err)
+		m.logger.Errorf(ctx, "[CreateToken] err: %v", err)
 		return "", utils.ErrInternalError
 	}
 
@@ -80,7 +80,7 @@ func(m *Manager) GetUsersById(ctx context.Context, id int) (*entity.User, error)
 func(m *Manager) VerifyToken(ctx context.Context, token string) (int, error) {
 	payload, err := m.jwttoken.ValidateToken(token)
 	if err != nil {
-		m.logger.Errorf("[ValidateToken] err: %v", err)
+		m.logger.Errorf(ctx, "[ValidateToken] err: %v", err)
 		return 0, utils.ErrInternalError
 	}
 

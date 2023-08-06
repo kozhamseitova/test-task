@@ -14,7 +14,7 @@ func (h *Handler) InitRouter() {
 	auth.Post("/register", h.createUser)
 	auth.Post("/login", h.login)
 
-	api := router.Group("api/v1")
+	api := router.Group("api/v1", h.generateTraceId)
 
 	user := api.Group("/users", h.userIdentity)
 
