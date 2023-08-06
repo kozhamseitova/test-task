@@ -7,16 +7,16 @@ import (
 )
 
 type Config struct {
-	DB    DBConfig `yaml:"db"`
-	Token TokenConfig
-	App AppConfig
+	DB    DBConfig     `yaml:"db"`
+	Token TokenConfig  `yaml:"token"`
+	App   AppConfig    `yaml:"app"`
+	HTTP  ServerConfig `yaml:"http"`
 }
 
 type AppConfig struct {
 	AppName    string `yaml:"app_name"`
 	LogLevel   string `yaml:"log_level"`
-	Production bool `yaml:"production"`
-	Port       string `yaml:"port"`
+	Production bool   `yaml:"production"`
 }
 
 type DBConfig struct {
@@ -32,6 +32,14 @@ type TokenConfig struct {
 	TimeToLive time.Duration `yaml:"time_to_live"`
 }
 
+type ServerConfig struct {
+	Port            string        `yaml:"port"`
+	Timeout         time.Duration `yaml:"timeout"`
+	ShutdownTimeout time.Duration `yaml:"shutdown_timeout"`
+	ReadTimeout     time.Duration `yaml:"read_timeout"`
+	WriteTimeout    time.Duration `yaml:"write_timeout"`
+}
+
 func InitConfig(path string) (*Config, error) {
 	cfg := new(Config)
 
@@ -41,6 +49,9 @@ func InitConfig(path string) (*Config, error) {
 	}
 
 	err = cleanenv.ReadEnv(cfg)
+	if err != nil {
+		return nil, err
+	}
 
 	return cfg, nil
 }

@@ -1,20 +1,17 @@
 package handler
 
 import (
-	"log"
-
 	"github.com/gofiber/fiber/v2"
 )
 
-func (h *Handler) InitRouter() {
-
-	router := fiber.New()
+func (h *Handler) InitRouter(router fiber.Router) {
+	router.Use(h.generateTraceId)
 
 	auth := router.Group("auth")
 	auth.Post("/register", h.createUser)
 	auth.Post("/login", h.login)
 
-	api := router.Group("api/v1", h.generateTraceId)
+	api := router.Group("api/v1")
 
 	user := api.Group("/users", h.userIdentity)
 
@@ -22,7 +19,4 @@ func (h *Handler) InitRouter() {
 	user.Get("/:id", h.getUserById)
 	user.Put("/", h.updateUser)
 	user.Delete("/:id", h.deleteUser)
-
-	log.Fatal(router.Listen(h.cfg.App.Port))
-
 }

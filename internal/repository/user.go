@@ -9,19 +9,17 @@ import (
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgx/v4"
 	"github.com/kozhamseitova/test-task/internal/entity"
-	"github.com/kozhamseitova/test-task/pkg/utils"
+	"github.com/kozhamseitova/test-task/utils"
 )
 
 func (m *Manager) CreateUser(ctx context.Context, u *entity.CreateUserRequest) (int, error) {
 	var id int
-
 	query := fmt.Sprintf(`INSERT INTO %s (
 						username, password, first_name, last_name, city, birth_date)
 						VALUES ($1, $2, $3, $4, $5, $6)
 						RETURNING id`, usersTable)
 
 	err := pgxscan.Get(ctx, m.pool, &id, query, u.Username, u.Password, u.FirstName, u.LastName, u.City, u.BirthDate)
-
 	if err != nil {
 		m.logger.Errorf(ctx, "[CreateUser] err: %v", err)
 		return 0, utils.ErrInternalError
@@ -129,7 +127,7 @@ func (m *Manager) GetAllUsers(ctx context.Context, filter entity.UserFilter) ([]
 func (m *Manager) GetUsersById(ctx context.Context, id int) (*entity.User, error) {
 	var user entity.User
 
-	query := fmt.Sprintf(`SELECT * from %s WHERE id = $1 LIMIT 1`, usersTable)
+	query := fmt.Sprintf(`SELECT id, username, first_name, last_name, city, birth_date from %s WHERE id = $1 LIMIT 1`, usersTable)
 
 	err := pgxscan.Get(ctx, m.pool, &user, query, id)
 

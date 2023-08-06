@@ -1,8 +1,13 @@
 package app
 
 import (
+	"context"
+	"os"
+	"os/signal"
+
 	"github.com/kozhamseitova/test-task/internal/config"
 	"github.com/kozhamseitova/test-task/internal/handler"
+	"github.com/kozhamseitova/test-task/internal/httpserver"
 	"github.com/kozhamseitova/test-task/internal/repository"
 	"github.com/kozhamseitova/test-task/internal/service"
 	"github.com/kozhamseitova/test-task/pkg/client/postgres"
@@ -10,7 +15,7 @@ import (
 	"github.com/kozhamseitova/test-task/pkg/logger"
 )
 
-func Run(cfg *config.Config) error {
+func Run(ctx context.Context, cfg *config.Config) error {
 	dbConn, err := postgres.New(
 		postgres.WithHost(cfg.DB.Host),
 		postgres.WithPort(cfg.DB.Port),
@@ -18,7 +23,6 @@ func Run(cfg *config.Config) error {
 		postgres.WithUsername(cfg.DB.Username),
 		postgres.WithPassword(cfg.DB.Password),
 	)
-
 	if err != nil {
 		return err
 	}
@@ -34,6 +38,28 @@ func Run(cfg *config.Config) error {
 	srvc := service.NewService(repo, token, cfg, logger)
 	hndlr := handler.NewHandler(srvc, cfg, logger)
 
-	hndlr.InitRouter()
+	server := httpserver.New(
+		hndlr,
+		cfg,
+	)
+
+	server.Start()
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+
+	select {
+	case s := <-interrupt:
+		logger.Infof(ctx, "signal received: %s", s.String())
+	case err = <-server.Notify():
+		logger.Errorf(ctx, "server notify: %s", err.Error())
+	}
+
+	err = server.Shutdown()
+	if err != nil {
+		logger.Errorf(ctx, "server shutdown err: %s", err)
+	}
+
+
 	return nil
 }

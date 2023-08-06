@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kozhamseitova/test-task/api"
 	"github.com/kozhamseitova/test-task/internal/entity"
-	"github.com/kozhamseitova/test-task/pkg/utils"
+	"github.com/kozhamseitova/test-task/utils"
 )
 
 func (h *Handler) createUser(c *fiber.Ctx) error {
@@ -66,6 +66,12 @@ func (h *Handler) login(c *fiber.Ctx) error {
 				Message: err.Error(),
 			})
 		}
+		if errors.Is(err, utils.ErrInvalidCredentials) {
+			return c.Status(http.StatusUnauthorized).JSON(&api.Error{
+				Code:    http.StatusUnauthorized,
+				Message: err.Error(),
+			})
+		}
 		return c.Status(http.StatusInternalServerError).JSON(&api.Error{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
@@ -112,6 +118,12 @@ func (h *Handler) getUserById(c *fiber.Ctx) error {
 
 	user, err := h.service.GetUsersById(c.Context(), id)
 	if err != nil {
+		if errors.Is(err, utils.ErrNotFound) {
+			return c.Status(http.StatusNotFound).JSON(&api.Error{
+				Code:    http.StatusNotFound,
+				Message: err.Error(),
+			})
+		}
 		return c.Status(http.StatusInternalServerError).JSON(&api.Error{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),

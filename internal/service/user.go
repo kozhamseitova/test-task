@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/kozhamseitova/test-task/internal/entity"
-	"github.com/kozhamseitova/test-task/pkg/utils"
+	"github.com/kozhamseitova/test-task/utils"
 )
 
 func(m *Manager) CreateUser(ctx context.Context, u *entity.CreateUserRequest) (int, error) {
@@ -47,8 +47,7 @@ func(m *Manager) Login(ctx context.Context, username, password string) (string, 
 	err = utils.CheckPassword(password, user.Password)
 
 	if err != nil {
-		m.logger.Errorf(ctx, "[ChechPassword] err: %v", err)
-		return "", utils.ErrInternalError
+		return "", err
 	}
 
 	token, err := m.jwttoken.CreateToken(user.Id, m.config.Token.TimeToLive)

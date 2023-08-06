@@ -44,7 +44,7 @@ func (l *logger) Fatal(c context.Context, args ...interface{}) {
 	l.zapLogger.With("traceID", c.Value("traceID")).Fatal(args)
 }
 func (l *logger) Infof(c context.Context, format string, args ...interface{}) {
-	l.zapLogger.With("traceID", c.Value("traceID")).With("traceID", c.Value("traceID")).Infof(format, args)
+	l.zapLogger.With("traceID", c.Value("traceID")).Infof(format, args)
 }
 func (l *logger) Warnf(c context.Context, format string, args ...interface{}) {
 	l.zapLogger.With("traceID", c.Value("traceID")).Warnf(format, args)

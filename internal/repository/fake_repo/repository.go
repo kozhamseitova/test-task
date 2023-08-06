@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/kozhamseitova/test-task/internal/entity"
-	"github.com/kozhamseitova/test-task/pkg/utils"
+	"github.com/kozhamseitova/test-task/utils"
 )
 
 type Repository struct {
