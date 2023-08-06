@@ -1,0 +1,15 @@
+app:
+  app_name: 'test-task'
+  log_level: 'INFO'
+  production: false
+  port: ':8080'
+
+
+db:
+  host: 'localhost'
+  port: '5432'
+  db_name: 'test_task_db'
+  username: 'postgres'
+
+token:
+  time_to_live: "15m"
